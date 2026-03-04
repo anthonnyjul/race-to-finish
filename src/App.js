@@ -130,7 +130,7 @@ export default function App() {
   const level = LEVELS[levelIdx];
   const variation = level.variations[varIdx];
 
-  useEffect(() => { resetLevel(); }, [levelIdx, varIdx]);
+  useEffect(() => { resetLevel(); }, [levelIdx, varIdx]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function resetLevel() {
     setMoves([]);
@@ -166,7 +166,8 @@ export default function App() {
       if (!runRef.current) break;
       setAnimStep(i);
       const d = moves[i];
-      const newPos = [pos[0]+d.dr, pos[1]+d.dc];
+      const curPos = [...pos];
+      const newPos = [curPos[0]+d.dr, curPos[1]+d.dc];
       let dir = "right";
       if (d.dr===-1) dir="up"; else if (d.dr===1) dir="down"; else if (d.dc===-1) dir="left";
       setCarDir(dir);
@@ -178,7 +179,7 @@ export default function App() {
       if (variation.obstacles.some(o=>o[0]===newPos[0]&&o[1]===newPos[1])) {
         setCarPos(newPos); setStatus("crash"); setRunning(false); runRef.current=false; return;
       }
-      setTrail(t=>[...t,[...pos]]);
+      setTrail(t=>[...t,[...curPos]]);
       pos=newPos;
       setCarPos([...pos]);
     }
@@ -234,7 +235,7 @@ export default function App() {
     }
     window.addEventListener("keydown", onKey);
     return ()=>window.removeEventListener("keydown", onKey);
-  }, [running, status, moves, levelIdx, varIdx]);
+  }, [running, status, moves, levelIdx, varIdx]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)",display:"flex",flexDirection:"column",alignItems:"center",padding:"16px",fontFamily:"'Segoe UI',Arial,sans-serif"}}>
