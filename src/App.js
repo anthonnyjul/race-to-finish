@@ -210,6 +210,9 @@ export default function App() {
   const [animStep, setAnimStep] = useState(-1);
   const [trail, setTrail] = useState([]);
   const [winCounts, setWinCounts] = useState([0,0,0]);
+  const [totalWins, setTotalWins] = useState(
+    () => parseInt(localStorage.getItem('rtf_totalWins') || '0')
+  );
   const [touchHint, setTouchHint] = useState(null);
   const runRef = useRef(false);
 
@@ -298,6 +301,11 @@ export default function App() {
     if (pos[0]===variation.end[0]&&pos[1]===variation.end[1]) {
       const newCount = Math.min(winCounts[levelIdx]+1, WINS_NEEDED);
       setWinCounts(w=>{ const n=[...w]; n[levelIdx]=newCount; return n; });
+      setTotalWins(w => {
+        const next = w + 1;
+        localStorage.setItem('rtf_totalWins', next);
+        return next;
+      });
       setStatus("win");
     } else { setStatus("miss"); }
     setRunning(false);
@@ -308,6 +316,12 @@ export default function App() {
     if (mastered && levelIdx < LEVELS.length-1) { setLevelIdx(l=>l+1); setVarIdx(0); }
     else if (mastered) { setWinCounts([0,0,0]); setLevelIdx(0); setVarIdx(0); }
     else { setVarIdx((varIdx+1) % level.variations.length); }
+  }
+
+  function handleResetStats() {
+    localStorage.removeItem('rtf_totalWins');
+    setTotalWins(0);
+    setWinCounts([0, 0, 0]);
   }
 
   useEffect(() => {
@@ -349,6 +363,40 @@ export default function App() {
 
   return (
     <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#1a1a2e,#16213e,#0f3460)",display:"flex",flexDirection:"column",alignItems:"center",padding:"16px",fontFamily:"'Segoe UI',Arial,sans-serif"}}>
+      {/* Score counter - top right */}
+      <div style={{
+        position:"fixed", top:16, right:16, zIndex:100,
+        background:"linear-gradient(135deg,#1a1a3e,#0f3460)",
+        border:"2px solid #ffe066", borderRadius:16,
+        padding:"8px 16px", textAlign:"center",
+        boxShadow:"0 4px 16px #0008", minWidth:80
+      }}>
+        <div style={{fontSize:"1.5rem"}}>🏆</div>
+        <div style={{color:"#ffe066",fontWeight:"bold",fontSize:"1.4rem",lineHeight:1}}>{totalWins}</div>
+        <div style={{color:"#aee4f7",fontSize:"0.7rem",marginTop:2}}>Races Won</div>
+        <button onClick={handleResetStats} style={{
+          marginTop: 8,
+          background: "none",
+          border: "1px solid #ffffff44",
+          borderRadius: 6,
+          color: "#ffffff88",
+          fontSize: "0.65rem",
+          padding: "2px 6px",
+          cursor: "pointer",
+          transition: "all 0.2s",
+          fontWeight: "500"
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.color = "#ffe066";
+          e.currentTarget.style.borderColor = "#ffe066";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.color = "#ffffff88";
+          e.currentTarget.style.borderColor = "#ffffff44";
+        }}>
+          🔄 Reset
+        </button>
+      </div>
       {/* Title */}
       <div style={{textAlign:"center",marginBottom:10}}>
         <div style={{fontSize:"2rem",fontWeight:900,color:"#ffe066",textShadow:"0 2px 12px #ff8800"}}>🏁 Race to the Finish! 🏁</div>
@@ -451,7 +499,8 @@ export default function App() {
           {status==="win"&&(
             <div style={{margin:"8px 0 4px",display:"flex",justifyContent:"center",gap:6,fontSize:"1.8rem"}}>
               {Array.from({length:WINS_NEEDED}).map((_,i)=>(
-                <span key={i} style={{filter:i<currentWins?"none":"grayscale(1) opacity(0.3)"}}>⭐</span>
+                <span key={i} style={{filter:i<currentWins?"none":"grayscale(1) opacity(0.3)"}}>
+                  ⭐</span>
               ))}
             </div>
           )}
@@ -499,7 +548,7 @@ export default function App() {
         </div>
         {/* GO button */}
         <button onClick={runMoves} disabled={running||!!status||moves.length===0}
-          style={{...btnStyle("#ffe066","#1a1a2e",running||!!status||moves.length===0),
+          style={{...btnStyle("#16a34a","#1a1a2e",running||!!status||moves.length===0),
             fontSize:"1.2rem", padding:"18px 20px", borderRadius:16,
             minWidth:80, minHeight:80, lineHeight:1.2}}>
           {running?"🚗\nDriving...":"🚦\nGO!"}
