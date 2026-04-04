@@ -68,6 +68,68 @@ function CarSVG({ dir = "right", size = 48 }) {
   );
 }
 
+// The King-style race car
+function TheKingSVG({ dir = "right", size = 48 }) {
+  const flipH = dir === "left";
+  const rotate = dir === "up" ? -90 : dir === "down" ? 90 : 0;
+  return (
+    <svg width={size} height={size} viewBox="0 0 80 50" style={{ transform: `rotate(${rotate}deg) scaleX(${flipH ? -1 : 1})`, transition: "transform 0.3s" }}>
+      <ellipse cx="40" cy="32" rx="34" ry="13" fill="#003d99"/>
+      <path d="M20,32 Q22,16 35,14 L52,14 Q64,16 60,32 Z" fill="#0047b2"/>
+      <path d="M26,30 Q28,18 37,16 L50,16 Q58,18 56,30 Z" fill="#aee4f7" opacity="0.9"/>
+      <ellipse cx="35" cy="23" rx="5" ry="5.5" fill="white"/>
+      <ellipse cx="50" cy="23" rx="5" ry="5.5" fill="white"/>
+      <ellipse cx="36" cy="23.5" rx="3" ry="3.5" fill="#1a6bb5"/>
+      <ellipse cx="51" cy="23.5" rx="3" ry="3.5" fill="#1a6bb5"/>
+      <circle cx="37" cy="22.5" r="1.2" fill="black"/>
+      <circle cx="52" cy="22.5" r="1.2" fill="black"/>
+      <circle cx="35.5" cy="21.5" r="0.8" fill="white"/>
+      <circle cx="50.5" cy="21.5" r="0.8" fill="white"/>
+      <text x="40" y="37" textAnchor="middle" fontSize="9" fontWeight="bold" fill="white" fontFamily="Arial">43</text>
+      <circle cx="18" cy="38" r="8" fill="#222"/><circle cx="18" cy="38" r="4" fill="#888"/>
+      <circle cx="62" cy="38" r="8" fill="#222"/><circle cx="62" cy="38" r="4" fill="#888"/>
+      <ellipse cx="72" cy="30" rx="4" ry="3" fill="#ffe066"/>
+      <ellipse cx="8" cy="30" rx="3" ry="2.5" fill="#ff6666"/>
+      <rect x="65" y="18" width="4" height="18" fill="#222"/>
+      <polygon points="69,18 69,28 78,24" fill="#003d99"/>
+    </svg>
+  );
+}
+
+// The King-style race car
+function TheKingSVG({ dir = "right", size = 48 }) {
+  const flipH = dir === "left";
+  const rotate = dir === "up" ? -90 : dir === "down" ? 90 : 0;
+  return (
+    <svg width={size} height={size} viewBox="0 0 80 50" style={{ transform: `rotate(${rotate}deg) scaleX(${flipH ? -1 : 1})`, transition: "transform 0.3s" }}>
+      {/* Main body */}
+      <ellipse cx="40" cy="32" rx="34" ry="13" fill="#003d99"/>
+      <path d="M20,32 Q22,16 35,14 L52,14 Q64,16 60,32 Z" fill="#0047b2"/>
+      <path d="M26,30 Q28,18 37,16 L50,16 Q58,18 56,30 Z" fill="#aee4f7" opacity="0.9"/>
+      {/* Eyes */}
+      <ellipse cx="35" cy="23" rx="5" ry="5.5" fill="white"/>
+      <ellipse cx="50" cy="23" rx="5" ry="5.5" fill="white"/>
+      <ellipse cx="36" cy="23.5" rx="3" ry="3.5" fill="#1a6bb5"/>
+      <ellipse cx="51" cy="23.5" rx="3" ry="3.5" fill="#1a6bb5"/>
+      <circle cx="37" cy="22.5" r="1.2" fill="black"/>
+      <circle cx="52" cy="22.5" r="1.2" fill="black"/>
+      <circle cx="35.5" cy="21.5" r="0.8" fill="white"/>
+      <circle cx="50.5" cy="21.5" r="0.8" fill="white"/>
+      {/* Car number 43 */}
+      <text x="40" y="37" textAnchor="middle" fontSize="9" fontWeight="bold" fill="white" fontFamily="Arial">43</text>
+      {/* Wheels */}
+      <circle cx="18" cy="38" r="8" fill="#222"/><circle cx="18" cy="38" r="4" fill="#888"/>
+      <circle cx="62" cy="38" r="8" fill="#222"/><circle cx="62" cy="38" r="4" fill="#888"/>
+      {/* Headlights */}
+      <ellipse cx="72" cy="30" rx="4" ry="3" fill="#ffe066"/>
+      <ellipse cx="8" cy="30" rx="3" ry="2.5" fill="#ff6666"/>
+      {/* Large rear spoiler */}
+      <rect x="65" y="18" width="4" height="18" fill="#222"/>
+      <polygon points="69,18 69,28 78,24" fill="#003d99"/>
+    </svg>
+  );
+}
+
 // Mater-style tow truck
 function MaterSVG({ dir = "right", size = 48 }) {
   const flipH = dir === "left";
@@ -139,7 +201,14 @@ function ConeSVG() {
   );
 }
 
-
+function arrowBtn(disabled) {
+  return {
+    fontSize:"1.8rem", padding:"10px", borderRadius:"12px",
+    background:disabled?"#333":"#0f3460", border:"2px solid "+(disabled?"#444":"#aee4f7"),
+    color:disabled?"#666":"#fff", cursor:disabled?"not-allowed":"pointer",
+    transition:"all 0.15s", boxShadow:disabled?"none":"0 3px 10px #0006"
+  };
+}
 function btnStyle(bg, color, disabled=false) {
   return {
     background:disabled?"#333":bg, color:disabled?"#666":color,
@@ -185,6 +254,21 @@ function CarPicker({ onPick }) {
           </div>
           <div style={{color:"#ffe066",fontWeight:"bold",fontSize:"1.1rem"}}>🪝 Mater</div>
           <div style={{color:"#aee4f7",fontSize:"0.85rem",marginTop:4}}>Friendly tow truck!</div>
+        </div>
+        {/* The King */}
+        <div onClick={()=>onPick("theking")} style={{
+          background:"linear-gradient(135deg,#1a1a3e,#0f3460)",
+          border:"3px solid #003d99", borderRadius:20, padding:"28px 32px",
+          cursor:"pointer", textAlign:"center", transition:"transform 0.2s, box-shadow 0.2s",
+          boxShadow:"0 4px 24px #003d9955"
+        }}
+        onMouseEnter={e=>e.currentTarget.style.transform="scale(1.06)"}
+        onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
+          <div style={{marginBottom:12}}>
+            <TheKingSVG dir="right" size={80}/>
+          </div>
+          <div style={{color:"#ffe066",fontWeight:"bold",fontSize:"1.1rem"}}>👑 The King</div>
+          <div style={{color:"#aee4f7",fontSize:"0.85rem",marginTop:4}}>Powerful race car!</div>
         </div>
       </div>
     </div>
@@ -326,7 +410,7 @@ export default function App() {
   const mastered = currentWins >= WINS_NEEDED;
   const cellSize = 72;
   const plannedPos = getPlannedPos();
-  const VehicleSVG = selectedCar === "mater" ? MaterSVG : CarSVG;
+  const VehicleSVG = selectedCar === "mater" ? MaterSVG : selectedCar === "theking" ? TheKingSVG : CarSVG;
 
   // Build planned path for arrow overlay
   const plannedCells = [];
@@ -479,8 +563,18 @@ export default function App() {
         </div>
       </div>
 
-      {/* GO button */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"center",marginBottom:12}}>
+      {/* Arrow buttons + GO together */}
+      <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:12}}>
+        {/* D-pad */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,width:180}}>
+          <div/>
+          <button onClick={()=>addMove(DIRS[0])} disabled={running||!!status} style={arrowBtn(running||!!status)}>⬆️</button>
+          <div/>
+          <button onClick={()=>addMove(DIRS[2])} disabled={running||!!status} style={arrowBtn(running||!!status)}>⬅️</button>
+          <button onClick={()=>addMove(DIRS[1])} disabled={running||!!status} style={arrowBtn(running||!!status)}>⬇️</button>
+          <button onClick={()=>addMove(DIRS[3])} disabled={running||!!status} style={arrowBtn(running||!!status)}>➡️</button>
+        </div>
+        {/* GO button */}
         <button onClick={runMoves} disabled={running||!!status||moves.length===0}
           style={{...btnStyle("#ffe066","#1a1a2e",running||!!status||moves.length===0),
             fontSize:"1.2rem", padding:"18px 20px", borderRadius:16,
