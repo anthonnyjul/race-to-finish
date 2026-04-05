@@ -68,30 +68,46 @@ function CarSVG({ dir = "right", size = 48 }) {
   );
 }
 
-// The King - sky blue race car
-function KingSVG({ dir = "right", size = 48 }) {
+// The King - Plymouth Superbird from Disney Pixar Cars
+function TheKingSVG({ dir = "right", size = 48 }) {
   const flipH = dir === "left";
   const rotate = dir === "up" ? -90 : dir === "down" ? 90 : 0;
   return (
-    <svg width={size} height={size} viewBox="0 0 80 50"
+    <svg width={size} height={size} viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg"
       style={{ transform: `rotate(${rotate}deg) scaleX(${flipH ? -1 : 1})`, transition: "transform 0.3s" }}>
-      <ellipse cx="40" cy="32" rx="34" ry="13" fill="#87CEEB"/>
-      <path d="M20,32 Q22,16 35,14 L52,14 Q64,16 60,32 Z" fill="#5DB3D5"/>
-      <path d="M26,30 Q28,18 37,16 L50,16 Q58,18 56,30 Z" fill="#aee4f7" opacity="0.9"/>
-      <ellipse cx="35" cy="23" rx="5" ry="5.5" fill="white"/>
-      <ellipse cx="50" cy="23" rx="5" ry="5.5" fill="white"/>
-      <ellipse cx="36" cy="23.5" rx="3" ry="3.5" fill="#1a6bb5"/>
-      <ellipse cx="51" cy="23.5" rx="3" ry="3.5" fill="#1a6bb5"/>
-      <circle cx="37" cy="22.5" r="1.2" fill="black"/>
-      <circle cx="52" cy="22.5" r="1.2" fill="black"/>
-      <circle cx="35.5" cy="21.5" r="0.8" fill="white"/>
-      <circle cx="50.5" cy="21.5" r="0.8" fill="white"/>
-      <text x="40" y="37" textAnchor="middle" fontSize="9" fontWeight="bold" fill="white" fontFamily="Arial">K</text>
-      <circle cx="18" cy="38" r="8" fill="#222"/><circle cx="18" cy="38" r="4" fill="#888"/>
-      <circle cx="62" cy="38" r="8" fill="#222"/><circle cx="62" cy="38" r="4" fill="#888"/>
-      <ellipse cx="72" cy="30" rx="4" ry="3" fill="#ffe066"/>
-      <ellipse cx="8" cy="30" rx="3" ry="2.5" fill="#ff6666"/>
-      <polygon points="44,17 41,22 43,22 40,28 44,22 42,22" fill="#ffe066"/>
+      {/* Sky blue main body */}
+      <rect x="50" y="75" width="210" height="50" rx="8" fill="#87CEEB" />
+      
+      {/* Cabin/roof hump */}
+      <rect x="100" y="50" width="120" height="30" rx="6" fill="#87CEEB" />
+      
+      {/* Nose cone - long pointed front */}
+      <polygon points="260,80 260,115 310,97" fill="#87CEEB" />
+      
+      {/* Rear spoiler struts - two vertical pillars */}
+      <rect x="58" y="20" width="6" height="55" fill="#8B1A1A" />
+      <rect x="75" y="20" width="6" height="55" fill="#8B1A1A" />
+      
+      {/* Spoiler blade - wide horizontal at top of struts */}
+      <rect x="38" y="12" width="60" height="12" rx="2" fill="#8B1A1A" />
+      
+      {/* Roof stripe */}
+      <rect x="100" y="50" width="120" height="8" rx="3" fill="#8B1A1A" />
+      
+      {/* Number panel */}
+      <rect x="140" y="82" width="60" height="30" rx="3" fill="#8B1A1A" />
+      
+      {/* Number 43 */}
+      <text x="170" y="103" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold" fontFamily="Arial">43</text>
+      
+      {/* Windshield */}
+      <rect x="200" y="52" width="40" height="26" rx="3" fill="#B0D8F0" opacity="0.7" />
+      
+      {/* Wheels */}
+      <circle cx="90" cy="128" r="18" fill="#222" />
+      <circle cx="90" cy="128" r="10" fill="#888" />
+      <circle cx="230" cy="128" r="18" fill="#222" />
+      <circle cx="230" cy="128" r="10" fill="#888" />
     </svg>
   );
 }
@@ -220,21 +236,6 @@ function CarPicker({ onPick }) {
           </div>
           <div style={{color:"#ffe066",fontWeight:"bold",fontSize:"1.1rem"}}>🪝 Mater</div>
           <div style={{color:"#aee4f7",fontSize:"0.85rem",marginTop:4}}>Friendly tow truck!</div>
-        </div>
-        {/* The King */}
-        <div onClick={()=>onPick("king")} style={{
-          background:"linear-gradient(135deg,#1a1a3e,#0f3460)",
-          border:"3px solid #87CEEB", borderRadius:20, padding:"28px 32px",
-          cursor:"pointer", textAlign:"center", transition:"transform 0.2s, box-shadow 0.2s",
-          boxShadow:"0 4px 24px #87CEEB55"
-        }}
-        onMouseEnter={e=>e.currentTarget.style.transform="scale(1.06)"}
-        onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
-          <div style={{marginBottom:12}}>
-            <KingSVG dir="right" size={80}/>
-          </div>
-          <div style={{color:"#ffe066",fontWeight:"bold",fontSize:"1.1rem"}}>👑 The King</div>
-          <div style={{color:"#aee4f7",fontSize:"0.85rem",marginTop:4}}>Sky blue champion!</div>
         </div>
       </div>
     </div>
@@ -376,7 +377,7 @@ export default function App() {
   const mastered = currentWins >= WINS_NEEDED;
   const cellSize = 72;
   const plannedPos = getPlannedPos();
-  const VehicleSVG = selectedCar === "mater" ? MaterSVG : selectedCar === "king" ? KingSVG : CarSVG;
+  const VehicleSVG = selectedCar === "mater" ? MaterSVG : CarSVG;
 
   // Build planned path for arrow overlay
   const plannedCells = [];
