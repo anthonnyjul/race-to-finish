@@ -719,10 +719,10 @@ export default function RaceToFinish({ car: initialCar, onBack }) {
         })}
       </div>
 
-      <style>{\`
+      <style>{`
         @keyframes pop{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
         button:active:not(:disabled){transform:scale(0.93);}
-      \`}</style>
+      `}</style>
     </div>
   );
 }
