@@ -185,9 +185,9 @@ function CruzRamirezSVG({ dir = "right", size = 48 }) {
 const CARS = [
   { id: "mcqueen",    label: "McQueen",     color: "#e8002d", unlockLevel: 0, svg: <CarSVG dir="right" size={72} /> },
   { id: "mater",      label: "Mater",       color: "#8B6914", unlockLevel: 0, svg: <MaterSVG dir="right" size={72} /> },
-  { id: "the-king",   label: "The King",    color: "#87CEEB", unlockLevel: 2, svg: <TheKingSVG dir="right" size={72} /> },
-  { id: "doc-hudson", label: "Doc Hudson",  color: "#2c3e6e", unlockLevel: 4, svg: <DocHudsonSVG dir="right" size={72} /> },
-  { id: "cruz",       label: "Cruz",        color: "#f5c518", unlockLevel: 6, svg: <CruzRamirezSVG dir="right" size={72} /> },
+  { id: "the-king",   label: "The King",    color: "#87CEEB", unlockLevel: 1, svg: <TheKingSVG dir="right" size={72} /> },
+  { id: "doc-hudson", label: "Doc Hudson",  color: "#2c3e6e", unlockLevel: 3, svg: <DocHudsonSVG dir="right" size={72} /> },
+  { id: "cruz",       label: "Cruz",        color: "#f5c518", unlockLevel: 5, svg: <CruzRamirezSVG dir="right" size={72} /> },
 ];
 
 export default function App() {
