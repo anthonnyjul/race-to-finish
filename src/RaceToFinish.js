@@ -229,13 +229,20 @@ function btnStyle(bg, color, disabled=false) {
 
 
 function UnlockModal({ char, onClose }) {
+  // Show car SVG for characters that have matching SVG components in this file
+  const charSVG = char.id === 'mcqueen' ? <CarSVG dir="right" size={72} />
+               : char.id === 'mater'   ? <MaterSVG dir="right" size={72} />
+               : null;
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.82)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
       <div style={{background:`linear-gradient(135deg,${char.color}22,#1a1a2e)`,border:`3px solid ${char.color}`,borderRadius:24,padding:"32px 24px",textAlign:"center",maxWidth:320,width:"100%",boxShadow:`0 8px 40px ${char.color}88`,animation:"pop 0.4s"}}>
         <div style={{fontSize:"3rem",marginBottom:8}}>&#x1F3CE;&#xFE0F;</div>
         <div style={{fontSize:"0.85rem",color:"#aee4f7",letterSpacing:2,marginBottom:6,fontWeight:"bold"}}>NEW CHARACTER UNLOCKED!</div>
         <div style={{fontSize:"1.6rem",fontWeight:900,color:char.color,marginBottom:12,textShadow:`0 2px 12px ${char.color}`}}>{char.name}</div>
-        <div style={{width:48,height:48,borderRadius:"50%",background:char.color,margin:"0 auto 14px",boxShadow:`0 0 20px ${char.color}88`}}/>
+        {charSVG
+          ? <div style={{margin:"0 auto 14px",display:"flex",justifyContent:"center"}}>{charSVG}</div>
+          : <div style={{width:48,height:48,borderRadius:"50%",background:char.color,margin:"0 auto 14px",boxShadow:`0 0 20px ${char.color}88`}}/>
+        }
         <div style={{color:"#e0e0e0",fontSize:"1rem",marginBottom:20,lineHeight:1.5}}>{char.description}</div>
         <button onClick={onClose} style={{background:char.color,color:"#fff",border:"none",borderRadius:12,padding:"12px 28px",fontSize:"1rem",fontWeight:"bold",cursor:"pointer",boxShadow:`0 4px 16px ${char.color}66`}}>Awesome! &#x1F389;</button>
       </div>
@@ -347,6 +354,7 @@ export default function RaceToFinish({ car: initialCar, onBack }) {
   });
   const [showUnlock, setShowUnlock] = useState(null);
   const [showCollection, setShowCollection] = useState(false);
+  const [newCarUnlock, setNewCarUnlock] = useState(null); // { id, name } of newly unlocked playable car
   const [showGoPopup, setShowGoPopup] = useState(false);
   const runRef = useRef(false);
 
@@ -490,8 +498,16 @@ export default function RaceToFinish({ car: initialCar, onBack }) {
           if (_lvl >= 4) _extra.push('doc-hudson');
           if (_lvl >= 6) _extra.push('cruz');
         }
-        if (_extra.some(id => !_base.includes(id)))
+        if (_extra.some(id => !_base.includes(id))) {
           localStorage.setItem('race-to-finish-unlocked-cars', JSON.stringify([...new Set([..._base, ..._extra])]));
+          // Detect exactly which car was just newly unlocked at this mastery level
+          const CAR_NAMES = { 'the-king': 'The King', 'doc-hudson': 'Doc Hudson', 'cruz': 'Cruz Ramirez' };
+          let _newCar = null;
+          if (_lvl === 2 && !_base.includes('the-king')) _newCar = 'the-king';
+          else if (_lvl === 4 && !_base.includes('doc-hudson')) _newCar = 'doc-hudson';
+          else if (_lvl === 6 && !_base.includes('cruz')) _newCar = 'cruz';
+          if (_newCar) setTimeout(() => setNewCarUnlock({ id: _newCar, name: CAR_NAMES[_newCar] }), 1200);
+        }
       } catch {}
     } else { setStatus("miss"); }
     setRunning(false);
@@ -581,6 +597,21 @@ export default function RaceToFinish({ car: initialCar, onBack }) {
         </div>
       )}
       {showUnlock && <UnlockModal char={showUnlock} onClose={()=>setShowUnlock(null)}/>}
+      {newCarUnlock && (
+        <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.75)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:201,flexDirection:"column"}}>
+          <div style={{background:"#1a1a2e",border:"3px solid #ffe066",borderRadius:20,padding:"32px 40px",textAlign:"center",boxShadow:"0 8px 40px rgba(255,224,102,0.3)",animation:"pop 0.4s",maxWidth:320,width:"100%"}}>
+            <div style={{fontSize:"3rem",marginBottom:8}}>&#x1F3C6;</div>
+            <div style={{fontSize:"0.85rem",color:"#ffe066",letterSpacing:2,marginBottom:6,fontWeight:"bold"}}>NEW CAR UNLOCKED!</div>
+            <div style={{fontSize:"1.6rem",fontWeight:900,color:"#ffe066",marginBottom:8,textShadow:"0 2px 12px #ff8800"}}>{newCarUnlock.name}</div>
+            <p style={{color:"#aee4f7",fontSize:"0.95rem",marginBottom:20,lineHeight:1.5}}>Head to <strong>Change Car</strong> to race with it! &#x1F3CE;&#xFE0F;</p>
+            <button
+              onClick={() => setNewCarUnlock(null)}
+              style={{background:"linear-gradient(135deg,#ffe066,#ff8800)",color:"#1a1a2e",border:"none",borderRadius:12,padding:"12px 28px",fontSize:"1rem",fontWeight:"bold",cursor:"pointer",boxShadow:"0 4px 16px rgba(255,136,0,0.5)"}}>
+              Awesome! &#x1F389;
+            </button>
+          </div>
+        </div>
+      )}
       {showCollection && <CollectionModal chars={CHARACTERS} unlocked={unlockedChars} onClose={()=>setShowCollection(false)}/>}
 
       <button onClick={onBack} style={{position:"absolute",top:12,left:12,padding:"6px 14px",borderRadius:20,background:"rgba(255,255,255,0.15)",color:"#fff",border:"none",cursor:"pointer",fontSize:14,zIndex:10}}>&#x2190; Menu</button>
@@ -755,3 +786,4 @@ export default function RaceToFinish({ car: initialCar, onBack }) {
     </div>
   );
 }
+

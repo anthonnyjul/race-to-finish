@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import RaceToFinish from "./RaceToFinish";
 import CodeTheCourse from "./CodeTheCourse";
 
@@ -205,6 +205,16 @@ export default function App() {
     try { localStorage.setItem('race-to-finish-selected-car', id); } catch {}
   };
 
+  // Re-sync unlocked cars from localStorage whenever we return to main menu
+  useEffect(() => {
+    if (screen === 'menu') {
+      try {
+        const u = JSON.parse(localStorage.getItem('race-to-finish-unlocked-cars'));
+        if (u) setUnlockedCars(u);
+      } catch {}
+    }
+  }, [screen]);
+
   if (screen === "race") {
     return <RaceToFinish car={car} onBack={() => {
       try { const u = JSON.parse(localStorage.getItem('race-to-finish-unlocked-cars')); if (u) setUnlockedCars(u); } catch {}
@@ -333,3 +343,4 @@ export default function App() {
     </div>
   );
 }
+
