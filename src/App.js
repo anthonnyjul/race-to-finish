@@ -267,7 +267,7 @@ export default function App() {
             const selected = car === c.id;
             const isUnlocked = unlockedCars.includes(c.id);
             return (
-              <div key={c.id} onClick={() => isUnlocked && selectCar(c.id)} style={{
+              <div key={c.id} onClick={() => { if (isUnlocked) { selectCar(c.id); setScreen("race"); } }} style={{
                 background: selected ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)",
                 border: selected ? `3px solid ${c.color}` : "2px solid rgba(255,255,255,0.1)",
                 borderRadius: 14,
