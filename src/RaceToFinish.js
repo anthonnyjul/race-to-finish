@@ -378,6 +378,7 @@ export default function RaceToFinish({ car: initialCar, onBack }) {
   }
 
   const controlsRef = useRef(null);
+  const plannedPos = getPlannedPos();
 
   useEffect(() => { if (variation) resetLevel(); }, [levelIdx, varIdx]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -553,7 +554,6 @@ export default function RaceToFinish({ car: initialCar, onBack }) {
   const currentWins = winCounts[levelIdx];
   const mastered = currentWins >= WINS_NEEDED;
   const cellSize = 72;
-  const plannedPos = getPlannedPos();
   const VehicleSVG = selectedCar === "mater" ? MaterSVG : selectedCar === "the-king" ? TheKingSVG : CarSVG;
 
   // Build planned path for arrow overlay
