@@ -114,26 +114,27 @@ function buildSlotMap(slots, startCell, startDir) {
   let pos = { ...(startCell || { x: 0, y: 0 }) };
   let dir = startDir || 'right';
   const map = {};
-  for (const slot of slots) {
+  for (let si = 0; si < slots.length; si++) {
+    const slot = slots[si];
     if (!slot || !slot.cmdId) {
-      map[slot.id] = { type: 'gap', cell: { ...pos }, fromDir: dir, toDir: dir };
+      map[si] = { type: 'gap', cell: { ...pos }, fromDir: dir, toDir: dir };
       continue;
     }
     const cmd = slot.cmdId;
     if (cmd === 'forward') {
       const [dx, dy] = dirDeltas[dir] || [1, 0];
       const dest = { x: pos.x + dx, y: pos.y + dy };
-      map[slot.id] = { type: 'forward', cell: dest, fromDir: dir, toDir: dir };
+      map[si] = { type: 'forward', cell: dest, fromDir: dir, toDir: dir };
       pos = dest;
     } else if (cmd === 'turnLeft') {
       const turns = { right: 'up', up: 'left', left: 'down', down: 'right' };
       const newDir = turns[dir] || dir;
-      map[slot.id] = { type: 'turn', cell: { ...pos }, fromDir: dir, toDir: newDir };
+      map[si] = { type: 'turn', cell: { ...pos }, fromDir: dir, toDir: newDir };
       dir = newDir;
     } else if (cmd === 'turnRight') {
       const turns = { right: 'down', down: 'left', left: 'up', up: 'right' };
       const newDir = turns[dir] || dir;
-      map[slot.id] = { type: 'turn', cell: { ...pos }, fromDir: dir, toDir: newDir };
+      map[si] = { type: 'turn', cell: { ...pos }, fromDir: dir, toDir: newDir };
       dir = newDir;
     }
   }
@@ -261,8 +262,12 @@ export default function CodeTheCourse({ car, onBack }) {
   const [showGoOverlay, setShowGoOverlay] = useState(false);
   const runRef = useRef(false);
 
-  const sequence = slots.filter(s=>s.cmdId).map(s=>s.cmdId);
-  const allFilled = !slots.some(s=>s.locked&&!s.cmdId) && sequence.length>0;
+  const level       = LEVELS[levelIndex];
+  const sequence    = slots.filter(s=>s.cmdId).map(s=>s.cmdId);
+  const isOpenLevel = level.scaffold.length === 0;
+  const gapIndices  = level.scaffold.map((v,i)=>v===null?i:-1).filter(i=>i>=0);
+  const allFilled   = isOpenLevel ? false : (gapIndices.length > 0 && gapIndices.every(i=>slots[i]?.cmdId));
+  const canRun      = isOpenLevel ? sequence.length > 0 : allFilled;
 
   // Auto-run when all slots filled
   useEffect(() => {
@@ -275,8 +280,6 @@ export default function CodeTheCourse({ car, onBack }) {
       return () => { clearTimeout(t1); clearTimeout(t2); };
     }
   }, [allFilled, status]);
-
-  const level = LEVELS[levelIndex];
 
   function resetLevel(idx) {
     const lv = LEVELS[idx ?? levelIndex];
@@ -292,11 +295,19 @@ export default function CodeTheCourse({ car, onBack }) {
 
   function addCmd(id) {
     if (status==="running") return;
-    setSlots(prev=>{
-      const i=prev.findIndex(s=>!s.cmdId&&!s.locked);
-      if (i===-1) return prev;
-      const n=[...prev]; n[i]={cmdId:id,locked:false}; return n;
-    });
+    if (isOpenLevel) {
+      setSlots(prev=>{
+        const i=prev.findIndex(s=>!s.cmdId&&!s.locked);
+        if (i===-1) return prev;
+        const n=[...prev]; n[i]={cmdId:id,locked:false}; return n;
+      });
+    } else {
+      setSlots(prev=>{
+        const i=gapIndices.find(gi=>!prev[gi]?.cmdId);
+        if (i===undefined) return prev;
+        const n=[...prev]; n[i]={cmdId:id,locked:false}; return n;
+      });
+    }
   }
 
   function removeCmd(i) {
@@ -309,12 +320,20 @@ export default function CodeTheCourse({ car, onBack }) {
 
   function undoLast() {
     if (status==="running") return;
-    setSlots(prev=>{
-      const idx=[...prev].reverse().findIndex(s=>s.cmdId&&!s.locked);
-      if(idx===-1) return prev;
-      const real=prev.length-1-idx;
-      const n=[...prev]; n[real]={cmdId:null,locked:false}; return n;
-    });
+    if (isOpenLevel) {
+      setSlots(prev=>{
+        const idx=[...prev].reverse().findIndex(s=>s.cmdId&&!s.locked);
+        if(idx===-1) return prev;
+        const real=prev.length-1-idx;
+        const n=[...prev]; n[real]={cmdId:null,locked:false}; return n;
+      });
+    } else {
+      setSlots(prev=>{
+        const gi=[...gapIndices].reverse().find(gi=>prev[gi]?.cmdId);
+        if(gi===undefined) return prev;
+        const n=[...prev]; n[gi]={cmdId:null,locked:false}; return n;
+      });
+    }
   }
 
   function clearAll() {
@@ -323,7 +342,7 @@ export default function CodeTheCourse({ car, onBack }) {
   }
 
   const runSequence = async () => {
-    if (status==="running" || !allFilled) return;
+    if (status==="running" || !canRun) return;
     runRef.current = true;
     setStatus("running");
     setRacing(true);
@@ -385,9 +404,9 @@ export default function CodeTheCourse({ car, onBack }) {
 
   // Build slot→cell map for on-road visualization
   const slotMap = buildSlotMap(
-    (slots || []).filter(s => s != null),
-    level && (level.start || { x: 0, y: 0 }),
-    level && (level.startDir || 'right')
+    slots.slice(0, level.scaffold.length),
+    level.start || { x: 0, y: 0 },
+    level.startDir || 'right'
   );
 
   const bg = "linear-gradient(160deg,#1a1a2e,#16213e,#0f3460)";
@@ -498,11 +517,13 @@ export default function CodeTheCourse({ car, onBack }) {
 
       {/* Command palette */}
       <div style={{...card,marginBottom:10,width:"100%",maxWidth:380}}>
-        <div style={{color:"#aee4f7",fontSize:"0.8rem",marginBottom:8,fontWeight:600}}>COMMAND BLOCKS — tap to add</div>
+        <div style={{color:"#aee4f7",fontSize:"0.8rem",marginBottom:8,fontWeight:600}}>
+          {isOpenLevel ? "Add commands:" : (allFilled ? "All gaps filled ✓" : "Fill the gap:")}
+        </div>
         <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
           {COMMANDS.map(cmd=>(
             <button key={cmd.id} onClick={()=>addCmd(cmd.id)} title={cmd.label}
-              disabled={status==="running"||sequence.length>=MAX_SEQ}
+              disabled={status==="running"||(!isOpenLevel&&allFilled)||sequence.length>=MAX_SEQ}
               style={{width:58,height:58,borderRadius:12,background:cmd.color+"cc",border:"2px solid rgba(255,255,255,0.2)",color:"#fff",fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s",fontFamily:"'Segoe UI',Arial,sans-serif"}}>
               {cmd.icon}
             </button>
@@ -522,7 +543,10 @@ export default function CodeTheCourse({ car, onBack }) {
             disabled={status === 'running'}
             style={{padding:'0.4rem 1rem',borderRadius:'8px',border:'none',background:'#333',color:'#fff',cursor:'pointer',fontSize:'1rem'}}
           >✕ Clear</button>
-          {allFilled && status === 'idle' && (
+          {isOpenLevel && canRun && status === 'idle' && (
+            <button onClick={runSequence} style={{padding:'0.4rem 1rem',borderRadius:'8px',border:'none',background:'#27ae60',color:'#fff',cursor:'pointer',fontSize:'1rem',fontWeight:700}}>▶ GO</button>
+          )}
+          {!isOpenLevel && allFilled && status === 'idle' && (
             <span style={{color:'#ffe066',fontSize:'0.9rem',marginLeft:'0.5rem'}}>✓ Ready — launching…</span>
           )}
         </div>
