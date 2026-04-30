@@ -117,24 +117,24 @@ function buildSlotMap(slots, startCell, startDir) {
   for (let si = 0; si < slots.length; si++) {
     const slot = slots[si];
     if (!slot || !slot.cmdId) {
-      map[si] = { type: 'gap', cell: { ...pos }, fromDir: dir, toDir: dir };
+      map[si] = { type: 'gap', cmdId: null, locked: slot.locked, cell: { ...pos }, fromDir: dir, toDir: dir };
       continue;
     }
     const cmd = slot.cmdId;
     if (cmd === 'forward') {
       const [dx, dy] = dirDeltas[dir] || [1, 0];
       const dest = { x: pos.x + dx, y: pos.y + dy };
-      map[si] = { type: 'forward', cell: dest, fromDir: dir, toDir: dir };
+      map[si] = { type: 'forward', cmdId: slot.cmdId, locked: slot.locked, cell: dest, fromDir: dir, toDir: dir };
       pos = dest;
     } else if (cmd === 'turnLeft') {
       const turns = { right: 'up', up: 'left', left: 'down', down: 'right' };
       const newDir = turns[dir] || dir;
-      map[si] = { type: 'turn', cell: { ...pos }, fromDir: dir, toDir: newDir };
+      map[si] = { type: 'turn', cmdId: slot.cmdId, locked: slot.locked, cell: { ...pos }, fromDir: dir, toDir: newDir };
       dir = newDir;
     } else if (cmd === 'turnRight') {
       const turns = { right: 'down', down: 'left', left: 'up', up: 'right' };
       const newDir = turns[dir] || dir;
-      map[si] = { type: 'turn', cell: { ...pos }, fromDir: dir, toDir: newDir };
+      map[si] = { type: 'turn', cmdId: slot.cmdId, locked: slot.locked, cell: { ...pos }, fromDir: dir, toDir: newDir };
       dir = newDir;
     }
   }
@@ -150,7 +150,7 @@ const LEVELS = [
     hint: "Go right, turn, go down, turn, go left! 🔄",
     start:{x:0,y:1}, startDir:"right",
     finish:{x:0,y:3}, obstacles:[],
-    scaffold:["forward","forward","forward","turnRight","forward","forward",null,"turnRight","forward","forward","forward"],
+    scaffold:["forward","forward","forward","turnRight","forward","forward",null,"forward","forward","forward"],
     trackPath:[
       {x:0,y:1},{x:1,y:1},{x:2,y:1},{x:3,y:1},   // top straight →
       {x:3,y:2},{x:3,y:3},                          // right side ↓
@@ -163,7 +163,7 @@ const LEVELS = [
     hint: "Four corners make a full oval! Can you complete it? 🏁",
     start:{x:0,y:0}, startDir:"right",
     finish:{x:0,y:1}, obstacles:[],
-    scaffold:["forward","forward","forward","forward","turnRight","forward","forward","forward","turnRight",null,"forward","forward","forward","turnRight",null,"forward","forward",null],
+    scaffold:["forward","forward","forward","forward","turnRight","forward","forward","forward","forward",null,"forward","forward","forward","forward",null,"forward","forward",null],
     trackPath:[
       {x:0,y:0},{x:1,y:0},{x:2,y:0},{x:3,y:0},{x:4,y:0},  // top →
       {x:4,y:1},{x:4,y:2},{x:4,y:3},{x:4,y:4},              // right ↓
@@ -177,7 +177,7 @@ const LEVELS = [
     hint: "Two loops crossing in the middle — watch your turns! ∞",
     start:{x:0,y:0}, startDir:"right",
     finish:{x:4,y:4}, obstacles:[],
-    scaffold:["forward","forward","turnRight",null,"turnRight","forward","forward","turnLeft",null,"turnLeft","forward","forward","turnRight",null,"turnRight","forward","forward",null],
+    scaffold:["forward","forward",null,"forward","forward",null,"forward","forward",null,"forward","forward",null,"forward","forward","turnLeft","forward","forward","turnRight","forward","forward","turnRight","forward","forward"],
     trackPath:[
       {x:0,y:0},{x:1,y:0},{x:2,y:0},              // top-left top →
       {x:2,y:1},{x:2,y:2},                          // centre top ↓
@@ -195,7 +195,7 @@ const LEVELS = [
     hint: "An F1-style track with tight chicanes. Fill the gaps! 🏎️",
     start:{x:0,y:0}, startDir:"right",
     finish:{x:4,y:2}, obstacles:[],
-    scaffold:["forward","forward",null,"forward","turnRight",null,"turnLeft","forward",null,"turnRight","forward","forward",null,"turnLeft",null,"turnRight",null,"forward"],
+    scaffold:["forward","forward","forward",null,"forward",null,"forward","forward",null,"forward","forward",null,"forward","forward","forward",null,"forward"],
     trackPath:[
       {x:0,y:0},{x:1,y:0},{x:2,y:0},{x:3,y:0},    // top straight →
       {x:3,y:1},                                     // chicane right ↓
@@ -489,20 +489,41 @@ export default function CodeTheCourse({ car, onBack }) {
                   // Find if this cell has a slot assignment
                   const entry = Object.values(slotMap).find(e => e.cell && e.cell.x === x && e.cell.y === y);
                   if (!entry) {
-                    // Regular track cell — show faint direction arrow
-                    if (onTrack && !isObs && !isCarHere && arrow) return <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',zIndex:2,opacity:0.3,fontSize:'1.2rem',color:'#ffe066'}}>{arrow}</div>;
+                    // Regular track cell — faint direction hint
+                    if (onTrack && !isObs && !isCarHere && arrow) return <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',zIndex:2,opacity:0.18,fontSize:'1.1rem',color:'#ffe066'}}>{arrow}</div>;
                     return null;
                   }
                   if (entry.type === 'gap') {
-                    // Unfilled slot — pulsing ?
-                    return <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',zIndex:2,fontSize:'1.5rem',color:'#ffe066',animation:'ctcPulse 1s ease-in-out infinite'}}>?</div>;
+                    return (
+                      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,pointerEvents:'none'}}>
+                        <div style={{background:'rgba(255,224,102,0.12)',border:'2px dashed #ffe066',borderRadius:8,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',color:'#ffe066',animation:'ctcPulse 1s ease-in-out infinite'}}>?</div>
+                      </div>
+                    );
                   }
+                  const cmd = COMMANDS.find(c => c.id === entry.cmdId);
+                  const blockColor = cmd ? cmd.color : '#555';
+                  const childFilled = !entry.locked && entry.cmdId;
+                  const blockStyle = {
+                    background: blockColor + 'dd',
+                    border: childFilled ? '2px solid #2ecc71' : '1.5px solid rgba(255,255,255,0.2)',
+                    borderRadius: 8, width: 36, height: 36,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: childFilled ? '0 0 8px #2ecc71bb' : '0 2px 5px rgba(0,0,0,0.5)',
+                    fontSize: '1.25rem', color: '#fff',
+                  };
                   if (entry.type === 'turn') {
-                    return <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',zIndex:2}}><TurnArrow fromDir={entry.fromDir} toDir={entry.toDir} size={40}/></div>;
+                    return (
+                      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,pointerEvents:'none'}}>
+                        <div style={blockStyle}><TurnArrow fromDir={entry.fromDir} toDir={entry.toDir} size={24}/></div>
+                      </div>
+                    );
                   }
-                  // forward — show directional arrow
                   const dirArrow = {right:'→',left:'←',up:'↑',down:'↓'}[entry.fromDir] || '→';
-                  return <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',zIndex:2,fontSize:'1.5rem',color:'#ffe066'}}>{dirArrow}</div>;
+                  return (
+                    <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,pointerEvents:'none'}}>
+                      <div style={blockStyle}>{dirArrow}</div>
+                    </div>
+                  );
                 })()}
 
                 {level.start.x===x&&level.start.y===y&&!isCarHere&&<div style={{position:"absolute",bottom:2,fontSize:"0.55rem",color:"#27ae60",fontWeight:700,zIndex:2}}>START</div>}
