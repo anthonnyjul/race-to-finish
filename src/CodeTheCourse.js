@@ -107,6 +107,8 @@ const TurnArrow = ({ fromDir, toDir, size = 36 }) => {
         markerEnd={`url(#arr-${key})`} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
+};
+
 function buildSlotMap(slots, startCell, startDir) {
   const dirDeltas = { right: [1,0], left: [-1,0], down: [0,1], up: [0,-1] };
   let pos = { ...(startCell || { x: 0, y: 0 }) };
