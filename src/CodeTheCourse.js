@@ -140,8 +140,6 @@ function buildSlotMap(slots, startCell, startDir) {
   return map;
 }
 
-};
-
 // ── Level definitions ─────────────────────────────────────────────────────────
 // All trackPaths use {x:col, y:row}. startDir: "right"|"left"|"up"|"down"
 const LEVELS = [
