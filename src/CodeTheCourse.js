@@ -628,7 +628,7 @@ export default function CodeTheCourse({ car, onBack }) {
               style={{width:58,height:58,borderRadius:12,background:cmd.color+"cc",border:"2px solid rgba(255,255,255,0.2)",color:"#fff",fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s",fontFamily:"'Segoe UI',Arial,sans-serif"}}>
               {getCmdIcon(cmd.id)}
             </button>
-          }))
+          ))}
         </div>
       </div>
 
