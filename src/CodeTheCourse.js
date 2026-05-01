@@ -758,7 +758,8 @@ export default function CodeTheCourse({ car, onBack }) {
                   const next = (levelIndex + 1) % (activeCircuit.levels.length || 1);
                   const nextLv = activeCircuit.levels[next] || LEVELS[0];
                   setLevelIndex(next);
-                  setSlots(nextLv.scaffold.map((v,i) => ({cmdId:v||null, locked:v!==null, id:`slot-${i}`})));
+                  setSlots(buildSlots(nextLv.scaffold));
+                  setCarPos(nextLv.start); setCarDir(nextLv.startDir);
                   setStatus('idle');
                   setWins(0);
                   setWrongAttempts(0);
@@ -769,7 +770,8 @@ export default function CodeTheCourse({ car, onBack }) {
               </button>
               <button
                 onClick={() => {
-                  setSlots(level.scaffold.map((v,i) => ({cmdId:v||null, locked:v!==null, id:`slot-${i}`})));
+                  setSlots(buildSlots(level.scaffold));
+                  setCarPos(level.start); setCarDir(level.startDir);
                   setStatus('idle');
                   setWrongAttempts(0);
                   setLevelComplete(false);
