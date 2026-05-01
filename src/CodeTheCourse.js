@@ -151,6 +151,8 @@ const LEVELS = [
     start:{x:0,y:1}, startDir:"right",
     finish:{x:0,y:3}, obstacles:[],
     scaffold:["forward","forward","forward","turnRight","forward","forward",null,"forward","forward","forward"],
+    demoMode:true,
+    demoSolution:["forward","forward","forward","turnRight","forward","forward","forward","forward","forward","forward"],
     trackPath:[
       {x:0,y:1},{x:1,y:1},{x:2,y:1},{x:3,y:1},   // top straight →
       {x:3,y:2},{x:3,y:3},                          // right side ↓
@@ -355,6 +357,10 @@ export default function CodeTheCourse({ car, onBack }) {
     : cmdId === 'turnLeft' ? getDirArrow(ctcTL(headingAtGap))
     : cmdId === 'turnRight' ? getDirArrow(ctcTR(headingAtGap)) : '?';
   const canRun      = isOpenLevel ? sequence.length > 0 : allFilled;
+  const isDemoMode  = Boolean(level.demoMode);
+  const demoCorrectCmd = (isDemoMode && activeGapIdx >= 0 && level.demoSolution)
+    ? (level.demoSolution[activeGapIdx] || null)
+    : null;
 
   // Auto-run when all slots filled
   useEffect(() => {
@@ -383,6 +389,7 @@ export default function CodeTheCourse({ car, onBack }) {
 
   function addCmd(id) {
     if (status==="running") return;
+    if (isDemoMode && demoCorrectCmd && id !== demoCorrectCmd) return;
     playSound('tap');
     if (isOpenLevel) {
       setSlots(prev=>{
@@ -595,6 +602,7 @@ export default function CodeTheCourse({ car, onBack }) {
           <span style={{marginLeft:8}}>{LEVELS.map((_,i)=><span key={i}>{stars.includes(i)?"⭐":"·"}</span>)}</span>
         </div>
         <div style={{color:"#ffffff99",fontSize:"0.85rem",fontStyle:"italic",marginTop:2}}>{level.hint}</div>
+        {isDemoMode&&<div style={{color:"#ffe066",fontSize:"0.8rem",fontWeight:600,marginTop:4,background:"rgba(255,224,102,0.1)",borderRadius:8,padding:"4px 12px"}}>👆 Tutorial — tap the glowing command!</div>}
         {winsThisLevel===1&&<div style={{color:"#ffe066",fontSize:"0.85rem",marginTop:2}}>⭐ 1 win — one more for a star!</div>}
       </div>
 
@@ -647,9 +655,18 @@ export default function CodeTheCourse({ car, onBack }) {
                     return null;
                   }
                   if (entry.type === 'gap') {
+                    const isActive = isDemoMode && activeGapIdx >= 0 && slotMap[activeGapIdx] === entry;
+                    const ghostCmd = isActive && demoCorrectCmd
+                      ? COMMANDS.find(c => c.id === demoCorrectCmd) : null;
                     return (
                       <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,pointerEvents:'none'}}>
-                        <div style={{background:'rgba(255,224,102,0.12)',border:'2px dashed #ffe066',borderRadius:8,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',color:'#ffe066',animation:'ctcPulse 1s ease-in-out infinite'}}>?</div>
+                        {ghostCmd ? (
+                          <div style={{background:ghostCmd.color+'55',border:`2px dashed ${ghostCmd.color}`,borderRadius:8,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',color:'#fff',animation:'ctcPulse 0.8s ease-in-out infinite',opacity:0.75}}>
+                            {getCmdIcon(ghostCmd.id)}
+                          </div>
+                        ) : (
+                          <div style={{background:'rgba(255,224,102,0.12)',border:'2px dashed #ffe066',borderRadius:8,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',color:'#ffe066',animation:'ctcPulse 1s ease-in-out infinite'}}>?</div>
+                        )}
                       </div>
                     );
                   }
