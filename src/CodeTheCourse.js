@@ -248,6 +248,68 @@ function buildSlots(scaffold) {
 
 const GRID = 5;
 
+// ── Sound engine ──────────────────────────────────────────────────────────────────────────────
+function useSoundEngine(muted) {
+  const ctxRef = useRef(null);
+  function getCtx() {
+    if (!ctxRef.current) {
+      try { ctxRef.current = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    }
+    return ctxRef.current;
+  }
+  return function playSound(name) {
+    if (muted) return;
+    const ctx = getCtx();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime;
+      if (name === 'win') {
+        [523,659,784].forEach((freq,i)=>{
+          const osc=ctx.createOscillator(),gain=ctx.createGain();
+          osc.connect(gain);gain.connect(ctx.destination);
+          osc.type='sine';osc.frequency.value=freq;
+          gain.gain.setValueAtTime(0.3,t+i*0.12);
+          gain.gain.exponentialRampToValueAtTime(0.001,t+i*0.12+0.4);
+          osc.start(t+i*0.12);osc.stop(t+i*0.12+0.4);
+        });
+      } else if (name === 'crash') {
+        const osc=ctx.createOscillator(),gain=ctx.createGain();
+        osc.connect(gain);gain.connect(ctx.destination);
+        osc.type='sawtooth';osc.frequency.setValueAtTime(200,t);
+        osc.frequency.exponentialRampToValueAtTime(80,t+0.5);
+        gain.gain.setValueAtTime(0.4,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+        osc.start(t);osc.stop(t+0.5);
+      } else if (name === 'go') {
+        const osc=ctx.createOscillator(),gain=ctx.createGain();
+        osc.connect(gain);gain.connect(ctx.destination);
+        osc.type='square';osc.frequency.setValueAtTime(300,t);
+        osc.frequency.exponentialRampToValueAtTime(600,t+0.15);
+        gain.gain.setValueAtTime(0.2,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+        osc.start(t);osc.stop(t+0.2);
+      } else if (name === 'tap') {
+        const osc=ctx.createOscillator(),gain=ctx.createGain();
+        osc.connect(gain);gain.connect(ctx.destination);
+        osc.type='square';osc.frequency.value=800;
+        gain.gain.setValueAtTime(0.15,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.08);
+        osc.start(t);osc.stop(t+0.08);
+      }
+    } catch(e) {}
+  };
+}
+function ctcTL(d){return{right:'up',up:'left',left:'down',down:'right'}[d]||d;}
+function ctcTR(d){return{right:'down',down:'left',left:'up',up:'right'}[d]||d;}
+function getDirArrow(d){return{right:'→',left:'←',up:'↑',down:'↓'}[d]||'?';}
+function getHeadingAt(idx,slots,startDir){
+  let dir=startDir||'right';
+  for(let i=0;i<idx&&i<slots.length;i++){
+    const s=slots[i];
+    if(!s||!s.cmdId)continue;
+    if(s.cmdId==='turnLeft')dir=ctcTL(dir);
+    else if(s.cmdId==='turnRight')dir=ctcTR(dir);
+  }
+  return dir;
+}
+
 export default function CodeTheCourse({ car, onBack }) {
   const [levelIndex, setLevelIndex] = useState(0);
   const [wrongAttempts, setWrongAttempts] = useState(0);
@@ -264,18 +326,29 @@ export default function CodeTheCourse({ car, onBack }) {
   const [animCell, setAnimCell]     = useState(null);
   const [showGoOverlay, setShowGoOverlay] = useState(false);
   const runRef = useRef(false);
+  const [muted, setMuted] = useState(false);
+  const playSound = useSoundEngine(muted);
 
   const level       = LEVELS[levelIndex];
   const sequence    = slots.filter(s=>s.cmdId).map(s=>s.cmdId);
   const isOpenLevel = level.scaffold.length === 0;
   const gapIndices  = level.scaffold.map((v,i)=>v===null?i:-1).filter(i=>i>=0);
   const allFilled   = isOpenLevel ? false : (gapIndices.length > 0 && gapIndices.every(i=>slots[i]?.cmdId));
+  const activeGapIdx = isOpenLevel
+    ? slots.findIndex(s => !s.cmdId && !s.locked)
+    : (gapIndices.find(gi => !slots[gi]?.cmdId) ?? -1);
+  const headingAtGap = activeGapIdx >= 0
+    ? getHeadingAt(activeGapIdx, slots, level.startDir)
+    : level.startDir;
+  const getCmdIcon = (cmdId) => cmdId === 'forward' ? getDirArrow(headingAtGap)
+    : cmdId === 'turnLeft' ? getDirArrow(ctcTL(headingAtGap))
+    : cmdId === 'turnRight' ? getDirArrow(ctcTR(headingAtGap)) : '?';
   const canRun      = isOpenLevel ? sequence.length > 0 : allFilled;
 
   // Auto-run when all slots filled
   useEffect(() => {
     if (allFilled && status === 'idle') {
-      const t1 = setTimeout(() => setShowGoOverlay(true), 200);
+      const t1 = setTimeout(() => { setShowGoOverlay(true); playSound('go'); }, 200);
       const t2 = setTimeout(() => {
         setShowGoOverlay(false);
         runSequence();
@@ -298,6 +371,7 @@ export default function CodeTheCourse({ car, onBack }) {
 
   function addCmd(id) {
     if (status==="running") return;
+    playSound('tap');
     if (isOpenLevel) {
       setSlots(prev=>{
         const i=prev.findIndex(s=>!s.cmdId&&!s.locked);
@@ -323,6 +397,7 @@ export default function CodeTheCourse({ car, onBack }) {
 
   function undoLast() {
     if (status==="running") return;
+    playSound('tap');
     if (isOpenLevel) {
       setSlots(prev=>{
         const idx=[...prev].reverse().findIndex(s=>s.cmdId&&!s.locked);
@@ -380,7 +455,7 @@ export default function CodeTheCourse({ car, onBack }) {
     runRef.current=false;
 
     if (result==='win' || (!result && pos.x===level.finish.x && pos.y===level.finish.y)) {
-      setStatus('win');
+      playSound('win'); setStatus('win');
       const newWins=winsThisLevel+1;
       if (newWins>=2) {
         const newStars=[...new Set([...stars,levelIndex])];
@@ -395,7 +470,7 @@ export default function CodeTheCourse({ car, onBack }) {
       }
     } else {
       setWrongAttempts(prev => prev + 1);
-      setStatus('crash');
+      playSound('crash'); setStatus('crash');
       setRacing(false);
       await sleep(1500);
       resetLevel(levelIndex); setWins(winsThisLevel);
@@ -437,6 +512,7 @@ export default function CodeTheCourse({ car, onBack }) {
       <style>{PULSE_STYLE}</style>
 
       <button onClick={onBack} style={{position:"absolute",top:12,left:12,padding:"6px 14px",borderRadius:20,background:"rgba(255,255,255,0.15)",color:"#fff",border:"none",cursor:"pointer",fontSize:14,zIndex:10}}>← Menu</button>
+      <button onClick={()=>setMuted(m=>!m)} style={{position:"absolute",top:12,right:12,padding:"6px 14px",borderRadius:20,background:"rgba(255,255,255,0.15)",color:"#fff",border:"none",cursor:"pointer",fontSize:14,zIndex:10}}>{muted?"🔇":"🔊"}</button>
 
       {/* Header */}
       <div style={{textAlign:"center",marginBottom:10,marginTop:36}}>
@@ -550,9 +626,9 @@ export default function CodeTheCourse({ car, onBack }) {
             <button key={cmd.id} onClick={()=>addCmd(cmd.id)} title={cmd.label}
               disabled={status==="running"||(!isOpenLevel&&allFilled)||sequence.length>=MAX_SEQ}
               style={{width:58,height:58,borderRadius:12,background:cmd.color+"cc",border:"2px solid rgba(255,255,255,0.2)",color:"#fff",fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s",fontFamily:"'Segoe UI',Arial,sans-serif"}}>
-              {cmd.icon}
+              {getCmdIcon(cmd.id)}
             </button>
-          ))}
+          }))
         </div>
       </div>
 
