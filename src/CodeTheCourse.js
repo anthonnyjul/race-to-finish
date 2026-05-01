@@ -740,6 +740,11 @@ export default function CodeTheCourse({ car, onBack }) {
                     const isActive = isDemoMode && activeGapIdx >= 0 && slotMap[activeGapIdx] === entry;
                     const ghostCmd = isActive && demoCorrectCmd
                       ? COMMANDS.find(c => c.id === demoCorrectCmd) : null;
+                    const gapEntries = Object.values(slotMap);
+                    const firstUnfilledGap = gapEntries.find(e => e.type === 'gap' && !e.cmdId);
+                    const isFirstGap = entry === firstUnfilledGap;
+                    const pulseHint = isFirstGap && attemptCount >= 3;
+                    const showLightbulb = isFirstGap && attemptCount >= 5;
                     return (
                       <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,pointerEvents:'none'}}>
                         {ghostCmd ? (
@@ -747,14 +752,7 @@ export default function CodeTheCourse({ car, onBack }) {
                             {getCmdIcon(ghostCmd.id)}
                           </div>
                         ) : (
-                          {(()=>{
-                          const gapEntries=Object.values(slotMap);
-                          const firstUnfilledGap=gapEntries.find(e=>e.type==='gap'&&!e.cmdId);
-                          const isFirstGap=entry===firstUnfilledGap;
-                          const pulseHint=isFirstGap&&attemptCount>=3;
-                          const showLightbulb=isFirstGap&&attemptCount>=5;
-                          return <div style={{background:pulseHint?'rgba(255,224,102,0.28)':'rgba(255,224,102,0.12)',border:pulseHint?'2px solid #ffe066':'2px dashed #ffe066',borderRadius:8,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',color:'#ffe066',animation:pulseHint?'ctcPulse 0.5s ease-in-out infinite':'ctcPulse 1s ease-in-out infinite'}}>{showLightbulb?'💡':'?'}</div>;
-                        })()}
+                          <div style={{background:pulseHint?'rgba(255,224,102,0.28)':'rgba(255,224,102,0.12)',border:pulseHint?'2px solid #ffe066':'2px dashed #ffe066',borderRadius:8,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',color:'#ffe066',animation:pulseHint?'ctcPulse 0.5s ease-in-out infinite':'ctcPulse 1s ease-in-out infinite'}}>{showLightbulb?'💡':'?'}</div>
                         )}
                       </div>
                     );
