@@ -824,7 +824,7 @@ export default function CodeTheCourse({ car, onBack }) {
           <CarSVG car={car} dir="right" size={100}/>
           <div style={{background:'rgba(255,255,255,0.1)',borderRadius:16,padding:'16px 28px',marginTop:20,
             color:'#ffe066',fontSize:'1.2rem',fontWeight:700,textAlign:'center',maxWidth:300}}>
-            {circuitIdx===0?'🏁 Let's race!':circuitIdx===1?'🔁 Spot the pattern!':'🔀 Choose wisely!'}
+            {circuitIdx===0?"🏁 Let's race!":circuitIdx===1?"🔁 Spot the pattern!":"🔀 Choose wisely!"}
           </div>
           <div style={{color:'#aee4f7',fontSize:'0.8rem',marginTop:12}}>tap to start</div>
         </div>
