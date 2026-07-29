@@ -2,6 +2,17 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Running locally
+
+**Prerequisites:** Node.js ≥ 18
+
+```bash
+npm install
+npm start
+```
+
+Opens [http://localhost:3000](http://localhost:3000) in your browser.
+
 ## Available Scripts
 
 In the project directory, you can run:
