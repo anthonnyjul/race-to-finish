@@ -1,0 +1,17 @@
+{
+  "feature_id": "f001",
+  "task_id": "t001",
+  "status": "completed",
+  "files_modified": ["README.md"],
+  "commit_sha": "75bbba535d9c712dc0f5ea5581eb5a0ac785d050",
+  "verification_result": {
+    "method": "grep_and_read_back",
+    "passed": true,
+    "details": "Section 'Running locally' at line 5, 11 lines added (under 15-line limit). Node ≥ 18 prereq, npm install, npm start, localhost:3000 link. Remote SHA confirmed via gh api. Branch from HEAD 8681550 (baseline SHA ccb5d41a not in this repo — used current main HEAD)."
+  },
+  "tool_calls": 12,
+  "started_at": "2026-07-29T09:00:00Z",
+  "completed_at": "2026-07-29T09:01:30Z",
+  "error": null,
+  "resumable_from": null
+}

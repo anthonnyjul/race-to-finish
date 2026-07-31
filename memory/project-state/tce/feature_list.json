@@ -1,0 +1,21 @@
+{
+  "current_feature_id": "f001",
+  "features": [
+    {
+      "id": "f001",
+      "description": "Add 'Running locally' section to race-to-finish README.md stating Node version, install command, and dev server command (≤15 lines total)",
+      "tier": 1,
+      "tasks": [
+        {
+          "id": "t001",
+          "description": "Add 'Running locally' section before 'Available Scripts' with Node ≥ 18 prerequisite, npm install, npm start, and localhost:3000 link",
+          "files": ["README.md"],
+          "status": "completed"
+        }
+      ],
+      "passes": true,
+      "promoted_sha": "75bbba535d9c712dc0f5ea5581eb5a0ac785d050",
+      "promoted_at": "2026-07-29T09:01:30Z"
+    }
+  ]
+}
